@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Snake With Events — защита</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#090f17;color:#e8f5ef;font-family:Arial,sans-serif}
+main{width:min(100vw,calc((100dvh - 58px)*16/9));margin:0 auto;container-type:inline-size}
+.slide{width:100%;aspect-ratio:16/9;position:relative;background:#101924;overflow:hidden}
+.slide[hidden],#notes[hidden]{display:none}
+.el{position:absolute;line-height:1.12;white-space:pre-wrap;margin:0;text-decoration:none}
+a.el:hover{text-decoration:underline}
+nav{min-height:58px;display:flex;align-items:center;justify-content:center;gap:12px;padding:8px}
+button{color:inherit;background:#182530;border:1px solid #36505a;border-radius:5px;padding:7px 15px;font:inherit;cursor:pointer}
+button:disabled{opacity:.4;cursor:default}
+#count{min-width:48px;text-align:center}
+#notes{margin:0 auto;padding:12px;max-width:880px;line-height:1.45}
+@media print{
+@page{size:13.333in 7.5in;margin:0}
+html,body{background:#101924;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+main{width:13.333in}
+.slide,.slide[hidden]{display:block;break-after:page}
+.slide:last-child{break-after:auto}
+nav,#notes{display:none!important}
+}
+</style>
+</head>
+<body>
+<main aria-label="Слайды презентации">
+<section class="slide" aria-label="Слайд 1">
+<div class="el" style="left:4.84375%;top:18.333333333333332%;width:50.78125%;height:34.02777777777778%;font:700 7.1875cqw Arial,sans-serif;color:#E8F5EF">Snake
+With Events</div>
+<div class="el" style="left:5.390625%;top:56.25%;width:53.90625%;height:8.88888888888889%;font:400 2.1875cqw Arial,sans-serif;color:#A7BFBD">Консольная игра с временными событиями</div>
+<div class="el" style="left:5.390625%;top:82.22222222222221%;width:50.78125%;height:6.388888888888888%;font:400 1.71875cqw Arial,sans-serif;color:#77DFAB">3-я контрольная точка · 1 декабря</div>
+<div aria-hidden="true" class="el" style="left:60.9375%;top:46.666666666666664%;width:3.90625%;height:6.944444444444445%;background:#77DFAB"></div>
+<div aria-hidden="true" class="el" style="left:65.625%;top:46.666666666666664%;width:3.90625%;height:6.944444444444445%;background:#77DFAB"></div>
+<div aria-hidden="true" class="el" style="left:70.3125%;top:46.666666666666664%;width:3.90625%;height:6.944444444444445%;background:#77DFAB"></div>
+<div aria-hidden="true" class="el" style="left:70.3125%;top:38.333333333333336%;width:3.90625%;height:6.944444444444445%;background:#77DFAB"></div>
+<div aria-hidden="true" class="el" style="left:75%;top:38.333333333333336%;width:3.90625%;height:6.944444444444445%;background:#77DFAB"></div>
+<div aria-hidden="true" class="el" style="left:79.6875%;top:38.333333333333336%;width:3.90625%;height:6.944444444444445%;background:#77DFAB"></div>
+<div aria-hidden="true" class="el" style="left:89.0625%;top:38.333333333333336%;width:3.90625%;height:6.944444444444445%;background:#FFCC75"></div>
+</section>
+<section class="slide" hidden aria-label="Слайд 2">
+<div class="el" style="left:5%;top:7.916666666666666%;width:90%;height:10.833333333333334%;font:700 4.21875cqw Arial,sans-serif;color:#E8F5EF">Как проходит партия</div>
+<div class="el" style="left:5.234375%;top:20%;width:89.453125%;height:7.638888888888888%;font:400 1.953125cqw Arial,sans-serif;color:#A7BFBD">Цель — набрать очки и занять змейкой всё поле</div>
+<div class="el" style="left:5.078125%;top:31.666666666666664%;width:41.40625%;height:14.444444444444445%;font:700 6.5625cqw Arial,sans-serif;color:#77DFAB">20 × 10</div>
+<div class="el" style="left:5.46875%;top:46.11111111111111%;width:39.84375%;height:6.527777777777778%;font:400 2.421875cqw Arial,sans-serif;color:#A7BFBD">клеток на поле</div>
+<div class="el" style="left:5.46875%;top:59.72222222222222%;width:43.4375%;height:8.333333333333334%;font:700 2.8125cqw Consolas,monospace;color:#E8F5EF">W / A / S / D + Enter</div>
+<div class="el" style="left:5.46875%;top:69.72222222222221%;width:44.921875%;height:6.25%;font:400 1.953125cqw Arial,sans-serif;color:#A7BFBD">Enter продолжает движение прямо</div>
+<div aria-hidden="true" class="el" style="left:50.46875%;top:29.72222222222222%;width:0.15625%;height:48.888888888888886%;background:#36505A"></div>
+<div class="el" style="left:54.53125%;top:31.25%;width:38.125%;height:8.055555555555555%;font:700 2.890625cqw Arial,sans-serif;color:#E8F5EF">@  Обычная еда</div>
+<div class="el" style="left:54.53125%;top:41.25%;width:38.4375%;height:6.944444444444445%;font:400 2.265625cqw Arial,sans-serif;color:#77DFAB">+10 очков и один сегмент</div>
+<div class="el" style="left:54.53125%;top:57.08333333333333%;width:38.28125%;height:7.638888888888888%;font:700 2.578125cqw Arial,sans-serif;color:#E8F5EF">Стена, тело или камень</div>
+<div class="el" style="left:54.53125%;top:66.11111111111111%;width:37.34375%;height:6.944444444444445%;font:400 2.03125cqw Arial,sans-serif;color:#A7BFBD">Завершают партию</div>
+</section>
+<section class="slide" hidden aria-label="Слайд 3">
+<div class="el" style="left:5%;top:7.916666666666666%;width:90%;height:10.833333333333334%;font:700 4.21875cqw Arial,sans-serif;color:#E8F5EF">Два события меняют маршрут</div>
+<div class="el" style="left:5.234375%;top:20%;width:89.453125%;height:7.638888888888888%;font:400 1.953125cqw Arial,sans-serif;color:#A7BFBD">События чередуются каждые 6 ходов и длятся по 4 хода</div>
+<div aria-hidden="true" class="el" style="left:49.921875%;top:31.38888888888889%;width:0.15625%;height:57.638888888888886%;background:#36505A"></div>
+<div class="el" style="left:5.46875%;top:30.97222222222222%;width:42.8125%;height:8.75%;font:700 2.96875cqw Arial,sans-serif;color:#FFCC75">*  Золотое яблоко</div>
+<div class="el" style="left:5.46875%;top:39.86111111111111%;width:39.921875%;height:6.527777777777778%;font:400 2.03125cqw Arial,sans-serif;color:#A7BFBD">+30 очков без роста</div>
+<div class="el" style="left:5.859375%;top:50%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFCC75">+--------------------+</div>
+<div class="el" style="left:5.859375%;top:53.05555555555556%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFCC75">|....................|</div>
+<div class="el" style="left:5.859375%;top:56.11111111111111%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFCC75">|....................|</div>
+<div class="el" style="left:5.859375%;top:59.166666666666664%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFCC75">|....@...............|</div>
+<div class="el" style="left:5.859375%;top:62.22222222222222%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFCC75">|....................|</div>
+<div class="el" style="left:5.859375%;top:65.27777777777777%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFCC75">|........oooO........|</div>
+<div class="el" style="left:5.859375%;top:68.33333333333333%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFCC75">|....................|</div>
+<div class="el" style="left:5.859375%;top:71.38888888888889%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFCC75">|....................|</div>
+<div class="el" style="left:5.859375%;top:74.44444444444444%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFCC75">|.................*..|</div>
+<div class="el" style="left:5.859375%;top:77.5%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFCC75">|....................|</div>
+<div class="el" style="left:5.859375%;top:80.55555555555556%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFCC75">|....................|</div>
+<div class="el" style="left:5.859375%;top:83.61111111111111%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFCC75">+--------------------+</div>
+<div class="el" style="left:53.75%;top:30.97222222222222%;width:39.84375%;height:8.75%;font:700 2.96875cqw Arial,sans-serif;color:#FFA188">X  Камнепад</div>
+<div class="el" style="left:53.75%;top:39.86111111111111%;width:40.625%;height:6.527777777777778%;font:400 2.03125cqw Arial,sans-serif;color:#A7BFBD">До трёх временных препятствий</div>
+<div class="el" style="left:54.140625%;top:50%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFA188">+--------------------+</div>
+<div class="el" style="left:54.140625%;top:53.05555555555556%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFA188">|....................|</div>
+<div class="el" style="left:54.140625%;top:56.11111111111111%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFA188">|....................|</div>
+<div class="el" style="left:54.140625%;top:59.166666666666664%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFA188">|....@...............|</div>
+<div class="el" style="left:54.140625%;top:62.22222222222222%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFA188">|...X................|</div>
+<div class="el" style="left:54.140625%;top:65.27777777777777%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFA188">|.......X............|</div>
+<div class="el" style="left:54.140625%;top:68.33333333333333%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFA188">|....................|</div>
+<div class="el" style="left:54.140625%;top:71.38888888888889%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFA188">|.......Oooo.........|</div>
+<div class="el" style="left:54.140625%;top:74.44444444444444%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFA188">|....................|</div>
+<div class="el" style="left:54.140625%;top:77.5%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFA188">|....................|</div>
+<div class="el" style="left:54.140625%;top:80.55555555555556%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFA188">|...............X....|</div>
+<div class="el" style="left:54.140625%;top:83.61111111111111%;width:39.0625%;height:3.333333333333333%;font:400 1.5625cqw Consolas,monospace;color:#FFA188">+--------------------+</div>
+</section>
+<section class="slide" hidden aria-label="Слайд 4">
+<div class="el" style="left:5%;top:7.916666666666666%;width:90%;height:10.833333333333334%;font:700 4.21875cqw Arial,sans-serif;color:#E8F5EF">Команда и зоны ответственности</div>
+<div class="el" style="left:5.234375%;top:20%;width:89.453125%;height:7.638888888888888%;font:400 1.953125cqw Arial,sans-serif;color:#A7BFBD">У каждого участника своя рабочая ветка</div>
+<div aria-hidden="true" class="el" style="left:5.46875%;top:44.30555555555556%;width:88.59375%;height:0.1388888888888889%;background:#36505A"></div>
+<div class="el" style="left:5.46875%;top:32.77777777777778%;width:28.515625%;height:7.222222222222222%;font:700 2.34375cqw Arial,sans-serif;color:#E8F5EF">Андрей Дульцев</div>
+<a class="el" style="left:36.640625%;top:33.05555555555556%;width:21.40625%;height:6.388888888888888%;font:700 2.109375cqw Consolas,monospace;color:#77DFAB" href="https://github.com/gg7691284-crypto/SnakeWithEventss/tree/game-core" target="_blank" rel="noopener">game-core</a>
+<div class="el" style="left:59.140625%;top:33.05555555555556%;width:35.546875%;height:8.333333333333334%;font:400 1.953125cqw Arial,sans-serif;color:#A7BFBD">Движение, рост, столкновения</div>
+<div aria-hidden="true" class="el" style="left:5.46875%;top:59.58333333333333%;width:88.59375%;height:0.1388888888888889%;background:#36505A"></div>
+<div class="el" style="left:5.46875%;top:48.05555555555556%;width:28.515625%;height:7.222222222222222%;font:700 2.34375cqw Arial,sans-serif;color:#E8F5EF">Данил Ефремов</div>
+<a class="el" style="left:36.640625%;top:48.33333333333333%;width:21.40625%;height:6.388888888888888%;font:700 2.109375cqw Consolas,monospace;color:#77DFAB" href="https://github.com/gg7691284-crypto/SnakeWithEventss/tree/game-events" target="_blank" rel="noopener">game-events</a>
+<div class="el" style="left:59.140625%;top:48.33333333333333%;width:35.546875%;height:8.333333333333334%;font:400 1.953125cqw Arial,sans-serif;color:#A7BFBD">Золотое яблоко и камнепад</div>
+<div aria-hidden="true" class="el" style="left:5.46875%;top:74.86111111111111%;width:88.59375%;height:0.1388888888888889%;background:#36505A"></div>
+<div class="el" style="left:5.46875%;top:63.33333333333333%;width:28.515625%;height:7.222222222222222%;font:700 2.34375cqw Arial,sans-serif;color:#E8F5EF">Никита Лецких</div>
+<a class="el" style="left:36.640625%;top:63.61111111111111%;width:21.40625%;height:6.388888888888888%;font:700 2.109375cqw Consolas,monospace;color:#77DFAB" href="https://github.com/gg7691284-crypto/SnakeWithEventss/tree/terminal-ui" target="_blank" rel="noopener">terminal-ui</a>
+<div class="el" style="left:59.140625%;top:63.61111111111111%;width:35.546875%;height:8.333333333333334%;font:400 1.953125cqw Arial,sans-serif;color:#A7BFBD">Управление, вывод поля и демо</div>
+<div class="el" style="left:5.546875%;top:84.72222222222221%;width:86.71875%;height:5.972222222222222%;font:400 1.875cqw Arial,sans-serif;color:#77DFAB">Готовую версию запускаем из main</div>
+</section>
+<section class="slide" hidden aria-label="Слайд 5">
+<div class="el" style="left:5%;top:7.916666666666666%;width:90%;height:10.833333333333334%;font:700 4.21875cqw Arial,sans-serif;color:#E8F5EF">Как менялся репозиторий</div>
+<div class="el" style="left:5.234375%;top:20%;width:89.453125%;height:7.638888888888888%;font:400 1.953125cqw Arial,sans-serif;color:#A7BFBD">Записи из истории коммитов GitHub</div>
+<div class="el" style="left:5.625%;top:31.944444444444443%;width:23.4375%;height:7.5%;font:700 2.890625cqw Arial,sans-serif;color:#77DFAB">22 ноября</div>
+<a class="el" style="left:5.625%;top:41.25%;width:19.53125%;height:5.555555555555555%;font:400 1.953125cqw Consolas,monospace;color:#77DFAB" href="https://github.com/gg7691284-crypto/SnakeWithEventss/commit/6e17f67" target="_blank" rel="noopener">6e17f67</a>
+<div class="el" style="left:5.625%;top:48.75%;width:34.375%;height:7.361111111111111%;font:400 2.1875cqw Arial,sans-serif;color:#E8F5EF">Появился первый прототип</div>
+<div aria-hidden="true" class="el" style="left:42.8125%;top:30.97222222222222%;width:0.15625%;height:50.83333333333333%;background:#36505A"></div>
+<div class="el" style="left:47.34375%;top:31.944444444444443%;width:42.96875%;height:7.5%;font:700 2.890625cqw Arial,sans-serif;color:#77DFAB">25 ноября</div>
+<a class="el" style="left:47.421875%;top:42.77777777777778%;width:12.5%;height:4.722222222222222%;font:400 1.796875cqw Consolas,monospace;color:#77DFAB" href="https://github.com/gg7691284-crypto/SnakeWithEventss/commit/4f361d1" target="_blank" rel="noopener">4f361d1</a>
+<div class="el" style="left:60.390625%;top:42.5%;width:35.15625%;height:5.416666666666667%;font:400 1.875cqw Arial,sans-serif;color:#E8F5EF">Движение и столкновения</div>
+<a class="el" style="left:47.421875%;top:49.72222222222222%;width:12.5%;height:4.722222222222222%;font:400 1.796875cqw Consolas,monospace;color:#77DFAB" href="https://github.com/gg7691284-crypto/SnakeWithEventss/commit/678ec61" target="_blank" rel="noopener">678ec61</a>
+<div class="el" style="left:60.390625%;top:49.44444444444444%;width:35.15625%;height:5.416666666666667%;font:400 1.875cqw Arial,sans-serif;color:#E8F5EF">Золотое яблоко и камнепад</div>
+<a class="el" style="left:47.421875%;top:56.666666666666664%;width:12.5%;height:4.722222222222222%;font:400 1.796875cqw Consolas,monospace;color:#77DFAB" href="https://github.com/gg7691284-crypto/SnakeWithEventss/commit/2ceeaea" target="_blank" rel="noopener">2ceeaea</a>
+<div class="el" style="left:60.390625%;top:56.388888888888886%;width:35.15625%;height:5.416666666666667%;font:400 1.875cqw Arial,sans-serif;color:#E8F5EF">Интерфейс и демонстрация</div>
+<a class="el" style="left:47.421875%;top:63.61111111111111%;width:12.5%;height:4.722222222222222%;font:400 1.796875cqw Consolas,monospace;color:#77DFAB" href="https://github.com/gg7691284-crypto/SnakeWithEventss/commit/7a569c4" target="_blank" rel="noopener">7a569c4</a>
+<div class="el" style="left:60.390625%;top:63.33333333333333%;width:35.15625%;height:5.416666666666667%;font:400 1.875cqw Arial,sans-serif;color:#E8F5EF">Сборка CMake и тесты</div>
+<a class="el" style="left:47.421875%;top:70.55555555555556%;width:12.5%;height:4.722222222222222%;font:400 1.796875cqw Consolas,monospace;color:#77DFAB" href="https://github.com/gg7691284-crypto/SnakeWithEventss/commit/870de27" target="_blank" rel="noopener">870de27</a>
+<div class="el" style="left:60.390625%;top:70.27777777777777%;width:35.15625%;height:5.416666666666667%;font:400 1.875cqw Arial,sans-serif;color:#E8F5EF">Инструкция запуска и роли</div>
+<a class="el" style="left:5.625%;top:81.25%;width:36.875%;height:6.527777777777778%;font:700 1.875cqw Arial,sans-serif;color:#77DFAB" href="https://github.com/gg7691284-crypto/SnakeWithEventss/commits/main/" target="_blank" rel="noopener">Открыть историю на GitHub</a>
+</section>
+<section class="slide" hidden aria-label="Слайд 6">
+<div class="el" style="left:5%;top:7.916666666666666%;width:90%;height:10.833333333333334%;font:700 4.21875cqw Arial,sans-serif;color:#E8F5EF">Проверка перед защитой</div>
+<div class="el" style="left:5.234375%;top:20%;width:89.453125%;height:7.638888888888888%;font:400 1.953125cqw Arial,sans-serif;color:#A7BFBD">Windows · GCC 15.2 · C++17</div>
+<div class="el" style="left:5.3125%;top:33.05555555555556%;width:38.671875%;height:15%;font:700 6.71875cqw Arial,sans-serif;color:#77DFAB">2 из 2</div>
+<div class="el" style="left:5.625%;top:49.02777777777778%;width:39.84375%;height:7.916666666666666%;font:400 2.65625cqw Arial,sans-serif;color:#E8F5EF">теста CTest прошли</div>
+<div aria-hidden="true" class="el" style="left:43.046875%;top:30.694444444444443%;width:0.15625%;height:51.80555555555556%;background:#36505A"></div>
+<div class="el" style="left:47.265625%;top:32.638888888888886%;width:44.53125%;height:7.222222222222222%;font:700 2.8125cqw Arial,sans-serif;color:#E8F5EF">Правила</div>
+<div class="el" style="left:47.265625%;top:41.80555555555556%;width:46.875%;height:13.333333333333332%;font:400 2.1875cqw Arial,sans-serif;color:#A7BFBD">Стены, тело, свободный хвост,
+полное поле и оба события</div>
+<div class="el" style="left:47.265625%;top:59.30555555555556%;width:44.53125%;height:7.222222222222222%;font:700 2.8125cqw Arial,sans-serif;color:#E8F5EF">Запуск</div>
+<div class="el" style="left:47.265625%;top:68.05555555555556%;width:47.265625%;height:13.194444444444445%;font:400 2.1875cqw Arial,sans-serif;color:#A7BFBD">Демонстрационная партия доходит
+до камнепада на 12-м ходу</div>
+</section>
+<section class="slide" hidden aria-label="Слайд 7">
+<div class="el" style="left:5%;top:7.916666666666666%;width:90%;height:10.833333333333334%;font:700 4.21875cqw Arial,sans-serif;color:#E8F5EF">Демонстрация</div>
+<div class="el" style="left:5.234375%;top:20%;width:89.453125%;height:7.638888888888888%;font:400 1.953125cqw Arial,sans-serif;color:#A7BFBD">Запустим партию и покажем оба события</div>
+<div class="el" style="left:5.3125%;top:32.77777777777778%;width:88.28125%;height:13.88888888888889%;font:700 4.921875cqw Consolas,monospace;color:#77DFAB">.\snake.exe --demo</div>
+<div aria-hidden="true" class="el" style="left:5.46875%;top:50.27777777777778%;width:88.90625%;height:0.1388888888888889%;background:#36505A"></div>
+<div class="el" style="left:5.625%;top:57.36111111111111%;width:28.125%;height:7.361111111111111%;font:700 2.5cqw Arial,sans-serif;color:#E8F5EF">Ход 1</div>
+<div class="el" style="left:5.625%;top:66.94444444444444%;width:27.34375%;height:13.055555555555555%;font:400 2.109375cqw Arial,sans-serif;color:#A7BFBD">Змейка ест обычную еду</div>
+<div class="el" style="left:35.625%;top:57.36111111111111%;width:28.125%;height:7.361111111111111%;font:700 2.5cqw Arial,sans-serif;color:#E8F5EF">Ход 6</div>
+<div class="el" style="left:35.625%;top:66.94444444444444%;width:27.34375%;height:13.055555555555555%;font:400 2.109375cqw Arial,sans-serif;color:#A7BFBD">Появляется золотое яблоко</div>
+<div class="el" style="left:65.625%;top:57.36111111111111%;width:28.125%;height:7.361111111111111%;font:700 2.5cqw Arial,sans-serif;color:#E8F5EF">Ход 12</div>
+<div class="el" style="left:65.625%;top:66.94444444444444%;width:27.34375%;height:13.055555555555555%;font:400 2.109375cqw Arial,sans-serif;color:#A7BFBD">Появляются камни</div>
+<a class="el" style="left:5.625%;top:85.27777777777777%;width:70.3125%;height:6.111111111111111%;font:700 1.953125cqw Arial,sans-serif;color:#77DFAB" href="https://github.com/gg7691284-crypto/SnakeWithEventss" target="_blank" rel="noopener">GitHub · SnakeWithEventss</a>
+</section>
+</main>
+<nav aria-label="Управление слайдами">
+<button type="button" id="prev">Назад</button>
+<output id="count" aria-live="polite"></output>
+<button type="button" id="next">Далее</button>
+<button type="button" id="notesButton" aria-controls="notes" aria-expanded="false">Заметки</button>
+</nav>
+<aside id="notes" hidden></aside>
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+const notes = ["Данил, 20 секунд. Представить команду и идею: мы добавили к правилам змейки события, которые меняют решения игрока.","Андрей, 35 секунд. Ход начинается с ввода команды. Затем вычисляется новая позиция головы. Если клетка свободна, змейка двигается. При обычном ходе хвост освобождает свою клетку, при съедании еды длина увеличивается.","Данил, 40 секунд. На 6-м ходу появляется яблоко. Его можно собрать за следующие четыре хода. На 12-м ходу появляются камни. Игра выбирает только свободные клетки. На слайде показаны поля из запуска snake --demo.","Никита, 30 секунд. Назвать зоны ответственности. Андрей добавил исходный прототип. Доработки подготовлены с помощью Codex от аккаунта Данила. Ветки отражают структуру проекта и показывают, где каждый участник может продолжать работу.","Андрей, 35 секунд. Открыть GitHub и показать вкладки Code, Branches и историю main. История начинается с прототипа 22 ноября. 25 ноября добавлены отдельные изменения по механике, событиям, интерфейсу, проверкам и README.","Никита, 30 секунд. Объяснить один исправленный крайний случай: на обычном ходу можно войти в клетку, которую покидает хвост. Второй — при заполнении поля выдаётся победа, а появление еды завершается.","Никита, 45 секунд. Запустить команду. Показать кадры 1, 6, 10 и 12. На 10-м ходу яблоко исчезло. Если есть время, запустить обычную игру, сделать пару ходов и выйти клавишей Q."];
+const prev = document.querySelector("#prev");
+const next = document.querySelector("#next");
+const notesButton = document.querySelector("#notesButton");
+const count = document.querySelector("#count");
+const note = document.querySelector("#notes");
+let current = 0;
+function show(index) {
+    current = Math.max(0, Math.min(index, slides.length - 1));
+    slides.forEach((slide, i) => { slide.hidden = i !== current; });
+    prev.disabled = current === 0;
+    next.disabled = current === slides.length - 1;
+    count.value = (current + 1) + " / " + slides.length;
+    note.textContent = notes[current];
+}
+prev.addEventListener("click", () => show(current - 1));
+next.addEventListener("click", () => show(current + 1));
+notesButton.addEventListener("click", () => {
+    note.hidden = !note.hidden;
+    notesButton.setAttribute("aria-expanded", String(!note.hidden));
+});
+document.addEventListener("keydown", (event) => {
+    const keys = { ArrowLeft: current - 1, ArrowRight: current + 1, Home: 0, End: slides.length - 1 };
+    if (event.key in keys) {
+        event.preventDefault();
+        show(keys[event.key]);
+    }
+});
+show(0);
+</script>
+</body>
+</html>

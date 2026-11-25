@@ -46,3 +46,7 @@ c++ -std=c++17 -Wall -Wextra snake.cpp -o snake
 | Никита Лецких | [terminal-ui](https://github.com/gg7691284-crypto/SnakeWithEventss/tree/terminal-ui) | Управление, вывод поля, перезапуск и демонстрация |
 
 `main` содержит собранную версию. Таблица показывает распределение ролей. Первый прототип добавил Андрей. Доработки подготовлены с помощью Codex от аккаунта Данила. Авторство отдельных изменений видно в [истории коммитов](https://github.com/gg7691284-crypto/SnakeWithEventss/commits/main/).
+
+## Презентация для защиты
+
+[Скачать HTML-презентацию](https://raw.githubusercontent.com/gg7691284-crypto/SnakeWithEventss/main/docs/SnakeWithEvents.html). Сохраните файл и откройте его в браузере. Стрелки листают слайды. Кнопка «Заметки» показывает подсказки выступающим.
