@@ -1,222 +1,112 @@
-#include <ncurses.h>
-#include <vector>
-#include <cstdlib>
-#include <ctime>
+#include "events.hpp"
 
-// Структура для координат
-struct Point {
-    int x, y;
-    bool operator==(const Point& other) const {
-        return x == other.x && y == other.y;
+#include <cctype>
+#include <iostream>
+#include <string>
+#include <string_view>
+
+void draw(const SnakeGame& game, const Events& events) {
+    std::vector<std::string> field(SnakeGame::height, std::string(SnakeGame::width, '.'));
+    for (Point rock : events.obstacles()) {
+        field[rock.y][rock.x] = 'X';
     }
-};
+    if (game.food) {
+        field[game.food->y][game.food->x] = '@';
+    }
+    if (const auto apple = events.apple()) {
+        field[apple->y][apple->x] = '*';
+    }
+    for (Point part : game.snake) {
+        field[part.y][part.x] = 'o';
+    }
+    const Point head = game.snake.front();
+    field[head.y][head.x] = 'O';
 
-// Перечисление направлений
-enum Direction { STOP = 0, LEFT, RIGHT, UP, DOWN };
+    std::cout << "\nSNAKE WITH EVENTS   Score: " << game.score << "   Turn: " << game.turn << '\n';
+    std::cout << '+' << std::string(SnakeGame::width, '-') << "+\n";
+    for (const auto& row : field) {
+        std::cout << '|' << row << "|\n";
+    }
+    std::cout << '+' << std::string(SnakeGame::width, '-') << "+\n";
+    if (events.kind() != Events::Kind::none) {
+        std::cout << (events.kind() == Events::Kind::gold ? "Gold apple (*)" : "Falling rocks (X)")
+                  << " | turns left: " << events.remaining(game.turn) << '\n';
+    }
+}
 
-class SnakeGame {
-private:
-    bool gameOver;
-    const int width = 40;
-    const int height = 20;
-    int score;
-    int delayMs; // Задержка в миллисекундах (регулирует скорость)
-    
-    Point food;
-    Direction dir;
-    std::vector<Point> snake;
+std::optional<Direction> readDirection(const std::string& command, Direction current) {
+    if (command.empty()) {
+        return current;
+    }
+    if (command.size() != 1) {
+        return std::nullopt;
+    }
+    switch (std::tolower(static_cast<unsigned char>(command.front()))) {
+        case 'w': return Direction::up;
+        case 'a': return Direction::left;
+        case 's': return Direction::down;
+        case 'd': return Direction::right;
+        default: return std::nullopt;
+    }
+}
 
-public:
-    SnakeGame() {
-        srand(time(0));
-        Setup();
+void showResult(const SnakeGame& game) {
+    switch (game.state) {
+        case State::wall: std::cout << "Game over: you hit the wall.\n"; break;
+        case State::body: std::cout << "Game over: you hit your body.\n"; break;
+        case State::rock: std::cout << "Game over: you hit a rock.\n"; break;
+        case State::won: std::cout << "You win: the board is full!\n"; break;
+        case State::playing: break;
+    }
+}
+
+void demo() {
+    SnakeGame game(7);
+    Events events;
+    game.food = Point{6, 4};
+    for (const char command : std::string_view("ddddddssaaaa")) {
+        events.play(game, *readDirection(std::string(1, command), game.direction));
+        if (game.turn == 1 || game.turn == 6 || game.turn == 10 || game.turn == 12) {
+            draw(game, events);
+        }
+    }
+}
+
+int main(int argc, char* argv[]) {
+    if (argc == 2 && std::string_view(argv[1]) == "--demo") {
+        demo();
+        return 0;
+    }
+    if (argc != 1) {
+        std::cerr << "Usage: snake [--demo]\n";
+        return 1;
     }
 
-    // Инициализация начального состояния
-    void Setup() {
-        gameOver = false;
-        dir = RIGHT;
-        score = 0;
-        delayMs = 100; // Начальная скорость
+    std::cout << "W/A/S/D + Enter: move | Enter: straight | Q: quit\n"
+              << "@: food (+10, grows) | *: gold (+30) | X: rock\n";
+    while (true) {
+        SnakeGame game;
+        Events events;
+        draw(game, events);
+        std::string command;
 
-        snake.clear();
-        // Начальная длина змейки — 3 сегмента в центре поля
-        snake.push_back({width / 2, height / 2});
-        snake.push_back({width / 2 - 1, height / 2});
-        snake.push_back({width / 2 - 2, height / 2});
-
-        SpawnFood();
-    }
-
-    // Генерация еды в свободном месте
-    void SpawnFood() {
-        bool valid = false;
-        while (!valid) {
-            food.x = rand() % (width - 2) + 1;
-            food.y = rand() % (height - 2) + 1;
-            valid = true;
-            // Проверяем, чтобы еда не появилась внутри змейки
-            for (const auto& segment : snake) {
-                if (segment == food) {
-                    valid = false;
-                    break;
-                }
+        while (game.state == State::playing) {
+            std::cout << "Move > ";
+            if (!std::getline(std::cin, command) || command == "q" || command == "Q") {
+                return 0;
             }
-        }
-    }
-
-    // Считывание нажатий клавиш
-    void Input() {
-        int ch = getch(); // Неблокирующий ввод благодаря timeout()
-        switch (ch) {
-            case 'a': case 'A': case KEY_LEFT:
-                if (dir != RIGHT) dir = LEFT;
-                break;
-            case 'd': case 'D': case KEY_RIGHT:
-                if (dir != LEFT) dir = RIGHT;
-                break;
-            case 'w': case 'W': case KEY_UP:
-                if (dir != DOWN) dir = UP;
-                break;
-            case 's': case 'S': case KEY_DOWN:
-                if (dir != UP) dir = DOWN;
-                break;
-            case 'x': case 'X': case 27: // Выход по X или ESC
-                gameOver = true;
-                break;
-        }
-    }
-
-    // ==========================================================
-    // ТОЧКА РАСШИРЕНИЯ ДЛЯ ВАШИХ СОБЫТИЙ
-    // ==========================================================
-    void ProcessEvents() {
-        // Сюда можно добавлять любую логику, которая срабатывает 
-        // по времени, при наборе очков или случайно:
-        
-        // Пример 1: Ускорение змейки каждые 50 очков
-        // if (score > 0 && score % 50 == 0 && delayMs > 40) {
-        //     delayMs -= 5;
-        //     timeout(delayMs);
-        // }
-
-        // Пример 2: Событие при достижении определенного счета
-        // if (score == 100) { /* например, спавн стены или золотого яблока */ }
-    }
-
-    // Основная игровая логика (физика и правила)
-    void Logic() {
-        if (dir == STOP) return;
-
-        // Вычисляем новую позицию головы
-        Point newHead = snake[0];
-        switch (dir) {
-            case LEFT:  newHead.x--; break;
-            case RIGHT: newHead.x++; break;
-            case UP:    newHead.y--; break;
-            case DOWN:  newHead.y++; break;
-            default: break;
-        }
-
-        // Проверка столкновения со стенами
-        if (newHead.x <= 0 || newHead.x >= width - 1 || 
-            newHead.y <= 0 || newHead.y >= height - 1) {
-            gameOver = true;
-            return;
-        }
-
-        // Проверка столкновения с самим собой
-        for (size_t i = 0; i < snake.size(); i++) {
-            if (snake[i] == newHead) {
-                gameOver = true;
-                return;
+            const auto direction = readDirection(command, game.direction);
+            if (!direction) {
+                std::cout << "Use W, A, S, D, Enter or Q.\n";
+                continue;
             }
+            events.play(game, *direction);
+            draw(game, events);
         }
-
-        // Добавляем новую голову
-        snake.insert(snake.begin(), newHead);
-
-        // Проверка поедания еды
-        if (newHead == food) {
-            score += 10;
-            SpawnFood();
-            ProcessEvents(); // Проверяем события после съедения
-        } else {
-            // Если не съели, удаляем хвост (движение вперед)
-            snake.pop_back();
+        showResult(game);
+        std::cout << "Final score: " << game.score << " | R: restart | other key: exit > ";
+        if (!std::getline(std::cin, command) || (command != "r" && command != "R")) {
+            return 0;
         }
     }
-
-    // Отрисовка кадра в терминале
-    void Draw() {
-        erase(); // Очистка буфера экрана (без мерцания)
-
-        // Отрисовка границ поля
-        for (int x = 0; x < width; x++) {
-            mvaddch(0, x, '#');
-            mvaddch(height - 1, x, '#');
-        }
-        for (int y = 0; y < height; y++) {
-            mvaddch(y, 0, '#');
-            mvaddch(y, width - 1, '#');
-        }
-
-        // Отрисовка еды
-        attron(COLOR_PAIR(2));
-        mvaddch(food.y, food.x, '@');
-        attroff(COLOR_PAIR(2));
-
-        // Отрисовка змейки
-        attron(COLOR_PAIR(1));
-        for (size_t i = 0; i < snake.size(); i++) {
-            char symbol = (i == 0) ? 'O' : 'o'; // Голова 'O', тело 'o'
-            mvaddch(snake[i].y, snake[i].x, symbol);
-        }
-        attroff(COLOR_PAIR(1));
-
-        // Отрисовка интерфейса
-        mvprintw(height + 1, 0, "Score: %d | Controls: WASD / Arrows | Exit: X", score);
-
-        refresh(); // Вывод буфера на экран
-    }
-
-    // Главный игровой цикл
-    void Run() {
-        // Настройка ncurses
-        initscr();
-        cbreak();             // Отключаем буферизацию строк
-        noecho();             // Не выводить нажатые клавиши на экран
-        curs_set(0);          // Скрываем курсор
-        keypad(stdscr, TRUE); // Включаем поддержку стрелок
-        timeout(delayMs);     // Задержка ожидания ввода (задает FPS игры)
-
-        // Инициализация цветов
-        if (has_colors()) {
-            start_color();
-            init_pair(1, COLOR_GREEN, COLOR_BLACK); // Змейка
-            init_pair(2, COLOR_RED, COLOR_BLACK);   // Еда
-        }
-
-        while (!gameOver) {
-            Draw();
-            Input();
-            Logic();
-        }
-
-        // Экран окончания игры
-        timeout(-1); // Ждем нажатия любой клавиши бесконечно
-        mvprintw(height / 2, width / 2 - 5, "GAME OVER!");
-        mvprintw(height / 2 + 1, width / 2 - 8, "Final Score: %d", score);
-        mvprintw(height / 2 + 2, width / 2 - 11, "Press any key to exit");
-        refresh();
-        getch();
-
-        endwin(); // Корректное завершение работы ncurses
-    }
-};
-
-int main() {
-    SnakeGame game;
-    game.Run();
-    return 0;
 }
