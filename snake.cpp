@@ -1,9 +1,7 @@
 #include "events.hpp"
 
-#include <cctype>
 #include <iostream>
 #include <string>
-#include <string_view>
 
 void draw(const SnakeGame& game, const Events& events) {
     std::vector<std::string> field(SnakeGame::height, std::string(SnakeGame::width, '.'));
@@ -41,11 +39,11 @@ std::optional<Direction> readDirection(const std::string& command, Direction cur
     if (command.size() != 1) {
         return std::nullopt;
     }
-    switch (std::tolower(static_cast<unsigned char>(command.front()))) {
-        case 'w': return Direction::up;
-        case 'a': return Direction::left;
-        case 's': return Direction::down;
-        case 'd': return Direction::right;
+    switch (command[0]) {
+        case 'w': case 'W': return Direction::up;
+        case 'a': case 'A': return Direction::left;
+        case 's': case 'S': return Direction::down;
+        case 'd': case 'D': return Direction::right;
         default: return std::nullopt;
     }
 }
@@ -64,8 +62,13 @@ void demo() {
     SnakeGame game(7);
     Events events;
     game.food = Point{6, 4};
-    for (const char command : std::string_view("ddddddssaaaa")) {
-        events.play(game, *readDirection(std::string(1, command), game.direction));
+    const Direction right = Direction::right;
+    const Direction down = Direction::down;
+    const Direction left = Direction::left;
+    const Direction moves[] = {right, right, right, right, right, right,
+                               down, down, left, left, left, left};
+    for (Direction move : moves) {
+        events.play(game, move);
         if (game.turn == 1 || game.turn == 6 || game.turn == 10 || game.turn == 12) {
             draw(game, events);
         }
@@ -73,7 +76,7 @@ void demo() {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc == 2 && std::string_view(argv[1]) == "--demo") {
+    if (argc == 2 && std::string(argv[1]) == "--demo") {
         demo();
         return 0;
     }

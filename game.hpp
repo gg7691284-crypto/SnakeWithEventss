@@ -1,7 +1,6 @@
 #pragma once
 
 #include <algorithm>
-#include <array>
 #include <optional>
 #include <random>
 #include <vector>
@@ -57,12 +56,22 @@ public:
         if (state != State::playing) {
             return;
         }
-        const std::array<Point, 4> offsets{{{0, -1}, {-1, 0}, {0, 1}, {1, 0}}};
-        if ((static_cast<int>(requested) + 2) % 4 != static_cast<int>(direction)) {
+        const bool turnsBack =
+            (requested == Direction::up && direction == Direction::down) ||
+            (requested == Direction::down && direction == Direction::up) ||
+            (requested == Direction::left && direction == Direction::right) ||
+            (requested == Direction::right && direction == Direction::left);
+        if (!turnsBack) {
             direction = requested;
         }
-        const Point offset = offsets[static_cast<int>(direction)];
-        const Point next{snake.front().x + offset.x, snake.front().y + offset.y};
+
+        Point next = snake.front();
+        switch (direction) {
+            case Direction::up:    --next.y; break;
+            case Direction::down:  ++next.y; break;
+            case Direction::left:  --next.x; break;
+            case Direction::right: ++next.x; break;
+        }
         if (next.x < 0 || next.x >= width || next.y < 0 || next.y >= height) {
             state = State::wall;
             return;
@@ -73,10 +82,12 @@ public:
         }
         const bool eats = food == next;
         // На обычном ходу хвост освобождает клетку.
-        const auto occupiedEnd = eats ? snake.end() : snake.end() - 1;
-        if (std::find(snake.begin(), occupiedEnd, next) != occupiedEnd) {
-            state = State::body;
-            return;
+        const std::size_t occupiedCells = snake.size() - (eats ? 0 : 1);
+        for (std::size_t i = 0; i < occupiedCells; ++i) {
+            if (snake[i] == next) {
+                state = State::body;
+                return;
+            }
         }
 
         ++turn;
