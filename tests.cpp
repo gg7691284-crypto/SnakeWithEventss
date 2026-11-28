@@ -66,6 +66,8 @@ int main() {
     events.play(demo, apple.x > 0 ? Direction::right : Direction::left);
     expect(demo.score == 40 && demo.snake.size() == length && !events.apple(),
            "gold gives 30 points without growth");
+    expect(events.kind() == Events::Kind::none && events.remaining(demo.turn) == 0,
+           "collecting gold ends the event immediately");
 
     SnakeGame timeline(7);
     timeline.food.reset();

@@ -58,6 +58,14 @@ c++ -std=c++17 -Wall -Wextra snake.cpp -o snake
 
 Чтобы запустить игру, используйте ветку `main`. Изменения по датам можно посмотреть в [истории коммитов](https://github.com/gg7691284-crypto/SnakeWithEventss/commits/main/).
 
+## Как менялась игра
+
+| Дата | Что поменялось |
+| --- | --- |
+| 22 ноября | Появился [первый прототип змейки](https://github.com/gg7691284-crypto/SnakeWithEventss/commit/6e17f67). |
+| 25 ноября | В игру добавили [события, управление и тесты](https://github.com/gg7691284-crypto/SnakeWithEventss/compare/6e17f67...424ad95). |
+| 28 ноября | [Упростили движение и уточнили запуск](https://github.com/gg7691284-crypto/SnakeWithEventss/commit/c83933b). Таймер золотого яблока теперь исчезает сразу после сбора. |
+
 ## Презентация для защиты
 
 [Скачать HTML-презентацию](https://raw.githubusercontent.com/gg7691284-crypto/SnakeWithEventss/main/docs/SnakeWithEvents.html). Сохраните файл и откройте его в браузере. Стрелки листают слайды. Кнопка «Заметки» показывает подсказки выступающим.

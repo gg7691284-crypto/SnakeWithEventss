@@ -7,7 +7,9 @@ public:
     enum class Kind { none, gold, rocks };
 
     Kind kind() const { return active; }
-    int remaining(int turn) const { return endTurn - turn; }
+    int remaining(int turn) const {
+        return active == Kind::none ? 0 : endTurn - turn;
+    }
     const std::vector<Point>& obstacles() const { return rocks; }
     std::optional<Point> apple() const { return gold; }
 
@@ -17,11 +19,11 @@ public:
             return;
         }
 
-        if (gold == game.snake.front()) {
+        const bool collectedGold = gold == game.snake.front();
+        if (collectedGold) {
             game.score += 30;
-            gold.reset();
         }
-        if (active != Kind::none && game.turn >= endTurn) {
+        if (active != Kind::none && (collectedGold || game.turn >= endTurn)) {
             active = Kind::none;
             gold.reset();
             rocks.clear();
